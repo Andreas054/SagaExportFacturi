@@ -1,3 +1,5 @@
+# Version 1.0
+
 import subprocess
 import re
 import os
@@ -25,8 +27,8 @@ contstatic = ["371.6.", "371.4.", "371.8.", "371.10.", "371.12.", "371.9.", "371
 
 # Write to log current date and mark start of program
 now = datetime.datetime.now()
-tmp = os.system('echo ==================================== >> {}SagaExportLog.txt'.format(programdir))
-tmp = os.system('echo [{}] : Start program >> {}SagaExportLog.txt'.format(now,programdir))
+tmp = os.system('echo ==================================== >> {}ExportSaga_Facturi_Win.txt'.format(programdir))
+tmp = os.system('echo [{}] : Start program >> {}ExportSaga_Facturi_Win.txt'.format(now,programdir))
 
 tva=0
 
@@ -80,7 +82,7 @@ def inputdate():
         # In case of error print message and exception error and go back to the beggining of inputdate to try again
         print("\n============ Interval gresit\n")
         print(e)
-        time.sleep(5)
+        time.sleep(10)
         #inputdate()
 
 # Subprogram for connecting to the database and getting the set information based on 3 conditions
@@ -251,7 +253,7 @@ try:
                     datadbf = "IN_" + datedbfstart + "_" + datedbfend + "_" + magNume[magSelectat] + ".dbf"
                     print (str(e) + "Cod furnizor inexistent in SmartCash Shop")
                     # Write to log current datetime and specify the error
-                    tmp = os.system('echo [{}] : ERROR COD FURNIZOR MAGISTER {} {} >> {}SagaExportLog.txt'.format(now, magNume[magSelectat], e, programdir))
+                    tmp = os.system('echo [{}] : ERROR COD FURNIZOR MAGISTER {} {} >> {}ExportSaga_Facturi_Win.txt'.format(now, magNume[magSelectat], e, programdir))
                     # Go to the dbf location and rename the DBF to indicate an error
                     tmp = os.system("D: && cd {} && rename {} errorCodFurnizorMagister{}".format(dbfnamestatic + magNume[magSelectat], datadbf, datadbf + nowEXCEPT + ".dbf"))
                     time.sleep(5)
@@ -312,7 +314,7 @@ try:
 
     # Write to log current date and mark end of program
     now = datetime.datetime.now()
-    tmp = os.system('echo [{}] : Finished program {} >> {}SagaExportLog.txt'.format(now, magNume[magSelectat], programdir))
+    tmp = os.system('echo [{}] : Finished program {} >> {}ExportSaga_Facturi_Win.txt'.format(now, magNume[magSelectat], programdir))
 
     print ("\n\nSucces!")
     time.sleep(30)
@@ -324,6 +326,6 @@ except Exception as e:
     datadbf = "IN_" + datedbfstart + "_" + datedbfend + "_" + magNume[magSelectat] + ".dbf"
     print (str(e) + "Eroare comunicare SERVER")
     # Write to log current datetime and specify the error
-    tmp = os.system('echo [{}] : ERROR {} {} >> {}SagaExportLog.txt'.format(now, magNume[magSelectat], e, programdir))
+    tmp = os.system('echo [{}] : ERROR {} {} >> {}ExportSaga_Facturi_Win.txt'.format(now, magNume[magSelectat], e, programdir))
     # Go to the dbf location and rename the DBF to indicate an error
     tmp = os.system("D: && cd {} && rename {} error{}".format(dbfnamestatic + magNume[magSelectat], datadbf, datadbf + nowEXCEPT + ".dbf"))
