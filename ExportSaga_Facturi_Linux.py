@@ -1,4 +1,4 @@
-# Version 1.1
+# Version 1.1.2
 
 import subprocess
 import re
@@ -20,7 +20,7 @@ dbfnamestatic = "/home/ubuntuserver/ExportSagaPI/Export/Intrari/"
 magNume = ["P1", "P2", "P3", "P4", "P5", "Cob", "Fet", "CTp6", "CTg"]
 
 # Location for Firebird Database
-dbdir = ['"192.168.10.100:D:/FBData/SMARTCASH.FDB"', '"192.168.20.100:D:/IBData/SMARTCASH.FDB"', '"192.168.30.100:D:/IBData/SMARTCASH.FDB"', '"192.168.40.100:D:/IBData/SMARTCASH.FDB"', '"192.168.50.100:D:/IBData/SMARTCASH.FDB"', '"192.168.150.100:D:/IBData/SMARTCASH.FDB"', '"192.168.100.100:D:/IBData/SMARTCASH.FDB"', '"192.168.0.100:D:/IBData/SMARTCASH.FDB"', '"192.168.200.100:D:/FBData/SMARTCASH.FDB"']
+dbdir = ['"192.168.10.100:D:/FBData/SMARTCASH.FDB"', '"192.168.20.100:D:/FBData/SMARTCASH.FDB"', '"192.168.30.100:D:/IBData/SMARTCASH.FDB"', '"192.168.40.100:D:/IBData/SMARTCASH.FDB"', '"192.168.50.100:D:/IBData/SMARTCASH.FDB"', '"192.168.150.100:D:/IBData/SMARTCASH.FDB"', '"192.168.100.100:D:/IBData/SMARTCASH.FDB"', '"192.168.0.100:D:/IBData/SMARTCASH.FDB"', '"192.168.200.100:D:/FBData/SMARTCASH.FDB"']
 
 # Static variable 'CONT'
 contstatic = ["371.6.", "371.4.", "371.8.", "371.10.", "371.12.", "371.9.", "371.11.", "371.13.", "371.14."]
@@ -133,7 +133,7 @@ def filldb(datequerryarray):
 
 # Go through every magazin
 for magSelectat in range(0,len(magNume)):
-#for magSelectat in range(0, 1):
+#for magSelectat in range(1, 2):
     # Write to log current datetime and specify which MAGAZINE the query is working on
     tmp = os.system('echo "--" >> {}ExportSaga_Facturi_Linux.txt'.format(programdir))
     tmp = os.system('echo "[{}] : Query {} started" >> {}ExportSaga_Facturi_Linux.txt'.format(now, magNume[magSelectat], programdir))
