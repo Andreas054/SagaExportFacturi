@@ -1,4 +1,4 @@
-# Version 1.1.2
+# Version 1.1.3
 
 import subprocess
 import re
@@ -27,8 +27,9 @@ contstatic = ["371.6.", "371.4.", "371.8.", "371.10.", "371.12.", "371.9.", "371
 
 # Write to log current date and mark start of program
 now = datetime.datetime.now()
-tmp = os.system('echo "================AUTO================" >> {}ExportSaga_Facturi_Linux.txt'.format(programdir))
-tmp = os.system('echo "[{}] : Start program" >> {}ExportSaga_Facturi_Linux.txt'.format(now,programdir))
+with open(programdir + "ExportSaga_Facturi_Linux.txt", "a") as logFile:
+    logFile.write("================AUTO================\n")
+    logFile.write("[" + str(now) + "] : Start program" + "\n")
 
 # Convert now to string and keep only date in dbf compatible format (DATE FROM YESTERDAY)
 now = str(now)
@@ -44,20 +45,13 @@ tva=0
 headers = ["NR_NIR", "NR_INTRARE", "COD", "DATA", "SCADENT", "TIP", "COD_ART", "DEN_ART", "UM", "CANTITATE", "TVA_ART", "VALOARE", "TVA", "CONT", "PRET_VANZ", "GRUPA", "TVAI", "DEN_TIP", "GESTIUNE", "DEN_GEST"]
 
 # Subprogram for connecting to the database and getting the set information based on 3 conditions
-def isqlquery(condition,selection, table, column, data):
-    tmp=os.system('echo "CONNECT {};" > {}inputfile'.format(dbdir[magSelectat],programdir))
-    if condition == 1:
-        # 23 NOVEMBER 2021 REMOVED 'AND DATAREC IS NOT NULL'
-        tmp=os.system('echo "SELECT {} FROM {} WHERE {}={};" >> {}inputfile'.format(selection, table, column, data, programdir))
-    elif condition == 2:
-        tmp=os.system('echo "SELECT {} FROM {} WHERE {}={};" >> {}inputfile'.format(selection, table, column, data, programdir))
-    elif condition == 3:
-        tmp=os.system('echo "SELECT {} FROM {};" >> {}inputfile'.format(selection, table, programdir))
-    elif condition == 4:
-        tmp=os.system('echo "SELECT {} FROM {} WHERE {}={} AND TVA={};" >> {}inputfile'.format(selection, table, column, data, tva, programdir))
-    return str(subprocess.check_output("/home/ubuntuserver/ExportSagaPI/isql -u SYSDBA -p masterke -i {}inputfile".format(programdir),shell=True))
+def isqlquery(data):
+    with open(programdir + "inputfile", "w") as inputFile:
+        inputFile.write("CONNECT " + dbdir[magSelectat] + ";\n")
+        inputFile.write(data)
+    return str(subprocess.check_output("/home/ubuntuserver/ExportSagaPI/isql -u SYSDBA -p masterke -i " + programdir + "inputfile", shell=True))
     # Raspberry PI
-    #return str(subprocess.check_output("BOX86_NOBANNER=1 /usr/local/bin/box86 /home/pi/ExportSagaPI/isql -u SYSDBA -p masterke -i {}inputfile".format(programdir),shell=True))
+    #return str(subprocess.check_output("BOX86_NOBANNER=1 /usr/local/bin/box86 /home/pi/ExportSagaPI/isql -u SYSDBA -p masterke -i " + programdir + "inputfile", shell=True))
 
 def formatstr(substring, curline, removerest):
     # Keep string after last variable
@@ -88,9 +82,10 @@ def isqlsub(isqloutput2):
 
 def entrytvabased(idrec, tva):
     # Query the database with the global 'tva' variable and parameter 'idrec' and save output to a list
-    isqloutput2 = isqlquery(4,"CANTFIZ,PRETVANZARE,VALOARE_ACHIZITIE,VALOARE_ACHIZITIE_TVA","RECITEMS","IDREC",idrec)
+    isqloutput2 = isqlquery("SELECT CANTFIZ, PRETVANZARE, VALOARE_ACHIZITIE, VALOARE_ACHIZITIE_TVA FROM RECITEMS WHERE IDREC = " + str(idrec) + " AND TVA = " + str(tva) + ";")
+    isqloutput2 = isqloutput2[isqloutput2.find("==="):]
     isqloutput2 = isqloutput2.split("\n")
-    isqloutput2 = isqloutput2[3:-2]
+    isqloutput2 = isqloutput2[1:-2]
     # Initialize sums to 0
     pretvanzare = 0
     valoare_achizitie = 0
@@ -111,9 +106,9 @@ def entrytvabased(idrec, tva):
             subcurline = cantfiz
             cantfiz = cantfiz[:removerest.start()]
             # Format the SQL queries into variables
-            subpretvanzare, subcurline, removerest = formatstr("CANTFIZ",subcurline, removerest)
-            subvaloare_achizitie, subcurline, removerest = formatstr("VALOARE_ACHIZITIE",subcurline, removerest)
-            subvaloare_achizitie_tva, subcurline, removerest = formatstr("VALOARE_ACHIZITIE_TVA",subcurline, removerest)
+            subpretvanzare, subcurline, removerest = formatstr("CANTFIZ", subcurline, removerest)
+            subvaloare_achizitie, subcurline, removerest = formatstr("VALOARE_ACHIZITIE", subcurline, removerest)
+            subvaloare_achizitie_tva, subcurline, removerest = formatstr("VALOARE_ACHIZITIE_TVA", subcurline, removerest)
             # Sum them up and return them
             pretvanzare = pretvanzare + float(cantfiz) * float(subpretvanzare)
             valoare_achizitie = valoare_achizitie + float(subvaloare_achizitie)
@@ -135,8 +130,11 @@ def filldb(datequerryarray):
 for magSelectat in range(0,len(magNume)):
 #for magSelectat in range(1, 2):
     # Write to log current datetime and specify which MAGAZINE the query is working on
-    tmp = os.system('echo "--" >> {}ExportSaga_Facturi_Linux.txt'.format(programdir))
-    tmp = os.system('echo "[{}] : Query {} started" >> {}ExportSaga_Facturi_Linux.txt'.format(now, magNume[magSelectat], programdir))
+    now = datetime.datetime.now()
+    with open(programdir + "ExportSaga_Facturi_Linux.txt", "a") as logFile:
+        logFile.write("--\n")
+        logFile.write("[" + str(now) + "] : Query " + magNume[magSelectat] + " started" + "\n")
+
     # Initilize boolean to indicate that the WEB(cod furnizor) exists in the database
     existaCodSmartCash = True
     # Create dbf with custom name and add fields
@@ -173,9 +171,10 @@ for magSelectat in range(0,len(magNume)):
         # First query depending on date
         # Split into array of strings
         # Remove first 3 and last 2 lines (garbage)
-        isqloutput = isqlquery(1,"IDREC,NIR,IDFURN,NRFACT,DATAFACT","REC","DATANIR",datequery)
+        isqloutput = isqlquery("SELECT IDREC, NIR, IDFURN, NRFACT, DATAFACT FROM REC WHERE DATANIR = " + datequery + ";")
+        isqloutput = isqloutput[isqloutput.find("==="):]
         isqloutput = isqloutput.split("\n")
-        isqloutput = isqloutput[3:-2]
+        isqloutput = isqloutput[1:-2]
 
         for curline in isqloutput:
             # Only keep going if the boolean thats indicates the WEB(cod furnizor) exists in the database is 1
@@ -194,10 +193,10 @@ for magSelectat in range(0,len(magNume)):
                     idrec = idrec[:removerest.start()]
 
                     # Format the SQL queries into variables
-                    nir, curline, removerest = formatstr("NIR",curline, removerest)
-                    idfurn, curline, removerest = formatstr("IDFURN",curline, removerest)
-                    nrfact, curline, removerest = formatstr("NRFACT",curline, removerest)
-                    datafact, curline, removerest = formatstr("DATAFACT",curline, removerest)
+                    nir, curline, removerest = formatstr("NIR", curline, removerest)
+                    idfurn, curline, removerest = formatstr("IDFURN", curline, removerest)
+                    nrfact, curline, removerest = formatstr("NRFACT", curline, removerest)
+                    datafact, curline, removerest = formatstr("DATAFACT", curline, removerest)
 
                     # Add NIR to nrfact to look like "NR_INTRARE-NR_NIR" : "35601-6095"
                     nrfact = nrfact + "-" + nir
@@ -205,7 +204,8 @@ for magSelectat in range(0,len(magNume)):
                     # Try in case there is no COD(WEB) for the FURNIZOR in SmartCash Shop
                     try:
                         # COD (ie: 00028)
-                        isqloutput2 = isqlquery(2,"WEB","FURNIZORI","IDFURN",idfurn)
+                        isqloutput2 = isqlquery("SELECT WEB FROM FURNIZORI WHERE IDFURN = " + idfurn + ";")
+                        isqloutput2 = isqloutput2[isqloutput2.find("==="):]
                         furnizor = isqlsub(isqloutput2)
                     except Exception as e:
                         db.close()
@@ -217,14 +217,16 @@ for magSelectat in range(0,len(magNume)):
                         datadbf = "IN_" + datedbf + "_" + datedbf + "_" + magNume[magSelectat] + ".dbf"
                         print ("\n\n\nCod furnizor inexistent in SmartCash Shop" + str(e))
                         # Write to log current datetime and specify the error
-                        tmp = os.system('echo "[{}] : ERROR {} COD FURNIZOR MAGISTER {}" >> {}ExportSaga_Facturi_Linux.txt'.format(now, magNume[magSelectat], e, programdir))
+                        with open(programdir + "ExportSaga_Facturi_Linux.txt", "a") as logFile:
+                            logFile.write("[" + str(now) + "] : ERROR COD FURNIZOR MAGISTER " + magNume[magSelectat] + " " + str(e) + "\n")
                         # Go to the dbf location and rename the DBF to indicate an error
                         tmp = os.system("cd {} && mv {} errorCodFurnizorMagister{}".format(dbfnamestatic + magNume[magSelectat], datadbf, datadbf + nowEXCEPT + ".dbf"))
                         time.sleep(1)
                         continue
 
                     # GESTIUNE (ie: 8)
-                    isqloutput2 = isqlquery(2,"IDSHOP","DATEMAGAZIN",0,0)
+                    isqloutput2 = isqlquery("SELECT IDSHOP FROM DATEMAGAZIN;")
+                    isqloutput2 = isqloutput2[isqloutput2.find("==="):]
                     idshop = isqlsub(isqloutput2)
 
                     # DEN_GEST
@@ -278,7 +280,8 @@ for magSelectat in range(0,len(magNume)):
 
         # Write to log current datetime and specify which MAGAZINE the query finished
         now = datetime.datetime.now()
-        tmp = os.system('echo "[{}] : Query {} finished" >> {}ExportSaga_Facturi_Linux.txt'.format(now, magNume[magSelectat], programdir))
+        with open(programdir + "ExportSaga_Facturi_Linux.txt", "a") as logFile:
+            logFile.write("[" + str(now) + "] : Query " + magNume[magSelectat] + " finished\n")
 
     except Exception as e:
         db.close()
@@ -288,10 +291,12 @@ for magSelectat in range(0,len(magNume)):
         datadbf = "IN_" + datedbf + "_" + datedbf + "_" + magNume[magSelectat] + ".dbf"
         print ("\n\n\nEroare comunicare SERVER" + str(e))
         # Write to log current datetime and specify the error
-        tmp = os.system('echo "[{}] : ERROR {} {}" >> {}ExportSaga_Facturi_Linux.txt'.format(now, magNume[magSelectat], e, programdir))
+        with open(programdir + "ExportSaga_Facturi_Linux.txt", "a") as logFile:
+            logFile.write("[" + str(now) + "] : ERROR " + magNume[magSelectat] + " " + str(e) + "\n")
         # Go to the dbf location and rename the DBF to indicate an error
         tmp = os.system("cd {} && mv {} error{}".format(dbfnamestatic + magNume[magSelectat], datadbf, datadbf + nowEXCEPT + ".dbf"))
 
 # Write to log current datetime and specify the program finished
 now = datetime.datetime.now()
-tmp = os.system('echo "[{}] : Finished program" >> {}ExportSaga_Facturi_Linux.txt'.format(now,programdir))
+with open(programdir + "ExportSaga_Facturi_Linux.txt", "a") as logFile:
+    logFile.write("[" + str(now) + "] : Finished program\n")

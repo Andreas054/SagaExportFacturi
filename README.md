@@ -7,7 +7,8 @@ This is made to run on
 [Firebird 2.5.9](https://github.com/FirebirdSQL/firebird/releases/tag/R2_5_9) (*FirebirdSS-2.5.9.27139-0.i686.tar.gz*) is required.
 
 ## Additional libraries
-- [dbfpy](https://pypi.org/project/dbfpy/)
+- ~~[dbfpy](https://pypi.org/project/dbfpy/)~~ (pip on Python2 not working anymore)
+- [dbfpy](Lib/site-packages)
 
 ## Crontab for Ubuntu Server
 ### sudo
