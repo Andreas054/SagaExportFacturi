@@ -1,4 +1,4 @@
-# Version 1.2
+# Version 1.2.1
 
 # also for fdb  sudo apt install libfbclient2
 import fdb # https://fdb.readthedocs.io/en/v2.0/getting-started.html
@@ -149,38 +149,44 @@ for magSelectat in range(0, len(magNume)):
             fdbCursor2.execute(f"SELECT tva, SUM(cantfiz * pretvanzare), SUM(valoare_achizitie), SUM(valoare_achizitie_tva) FROM recitems WHERE idrec = {idrec} GROUP BY tva")
             listaCursor2 = fdbCursor2.fetchall()
             for (tva, pretvanzare, valoare_achizitie, valoare_achizitie_tva) in listaCursor2:
-                pretvanzare = round(pretvanzare, 2)
-                valoare_achizitie = round(valoare_achizitie, 2)
-                valoare_achizitie_tva = round(valoare_achizitie_tva, 2)
+                try:
+                    pretvanzare = round(pretvanzare, 2)
+                    valoare_achizitie = round(valoare_achizitie, 2)
+                    valoare_achizitie_tva = round(valoare_achizitie_tva, 2)
 
-                denart = asociereCotaTVA[tva] # INTRARE COTA A
-                if tva == 0:
-                    cont = f"461.SGR.{contstatic[magSelectat]}"
-                else:
-                    cont = f"371.{contstatic[magSelectat]}.{tva}"
+                    denart = asociereCotaTVA[tva] # INTRARE COTA A
+                    if tva == 0:
+                        cont = f"461.SGR.{contstatic[magSelectat]}"
+                        pretvanzare = 0.0
+                    else:
+                        cont = f"371.{contstatic[magSelectat]}.{tva}"
 
-                rec = db.new()
-                rec['NR_NIR'] = nir
-                rec['NR_INTRARE'] = nrfact
-                rec['COD'] = furnizor
-                rec['DATA'] = datafact
-                rec['SCADENT'] = ''
-                rec['TIP'] = ''
-                rec['COD_ART'] = ''
-                rec['DEN_ART'] = denart
-                rec['UM'] = 'Buc'
-                rec['CANTITATE'] = 1
-                rec['TVA_ART'] = tva
-                rec['VALOARE'] = valoare_achizitie
-                rec['TVA'] = valoare_achizitie_tva
-                rec['CONT'] = cont
-                rec['PRET_VANZ'] = pretvanzare
-                rec['GRUPA'] = 'SC'
-                rec['TVAI'] = 'FALSE'
-                rec['DEN_TIP'] = 'Nedefinit'
-                rec['GESTIUNE'] = idshop
-                rec['DEN_GEST'] = dengest
-                db.write(rec)
+                    rec = db.new()
+                    rec['NR_NIR'] = nir
+                    rec['NR_INTRARE'] = nrfact
+                    rec['COD'] = furnizor
+                    rec['DATA'] = datafact
+                    rec['SCADENT'] = ''
+                    rec['TIP'] = ''
+                    rec['COD_ART'] = ''
+                    rec['DEN_ART'] = denart
+                    rec['UM'] = 'Buc'
+                    rec['CANTITATE'] = 1
+                    rec['TVA_ART'] = tva
+                    rec['VALOARE'] = valoare_achizitie
+                    rec['TVA'] = valoare_achizitie_tva
+                    rec['CONT'] = cont
+                    rec['PRET_VANZ'] = pretvanzare
+                    rec['GRUPA'] = 'SC'
+                    rec['TVAI'] = 'FALSE'
+                    rec['DEN_TIP'] = 'Nedefinit'
+                    rec['GESTIUNE'] = idshop
+                    rec['DEN_GEST'] = dengest
+                    db.write(rec)
+                except Exception as e:
+                    print(e)
+                    with open(programdir + "ExportSaga_Facturi.txt", "a") as logFile:
+                        logFile.write(f"[{datetime.datetime.now()}] : ERROR {magNume[magSelectat]} idrec = {idrec} {e}\n")
 
         db.close()
 
