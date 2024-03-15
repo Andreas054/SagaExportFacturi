@@ -1,4 +1,4 @@
-# Version 1.2.2
+# Version 1.2.3
 
 # also for fdb  sudo apt install libfbclient2
 import fdb # https://fdb.readthedocs.io/en/v2.0/getting-started.html
@@ -281,7 +281,7 @@ for magSelectat in range(0, len(magNume)):
                     rec['COD'] = furnizor
                     rec['DATA'] = datafact
                     rec['SCADENT'] = ''
-                    rec['TIP'] = 'A'
+                    rec['TIP'] = ''
                     rec['COD_ART'] = ''
                     rec['DEN_ART'] = denart
                     rec['UM'] = 'Buc'
