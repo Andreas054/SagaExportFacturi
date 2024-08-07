@@ -1,4 +1,4 @@
-# Version 1.2.4
+# Version 1.3
 
 # also for fdb  sudo apt install libfbclient2
 import fdb # https://fdb.readthedocs.io/en/v2.0/getting-started.html
@@ -77,7 +77,7 @@ for magSelectat in range(0, len(magNume)):
         fdbCursor1 = fdbConnection.cursor()
         fdbCursor2 = fdbConnection.cursor()
 
-        fdbCursor1.execute(f"SELECT idrec, nir, (SELECT web FROM furnizori WHERE idfurn = rec.idfurn), nrfact, datafact, (SELECT nume FROM furnizori WHERE idfurn = rec.idfurn) FROM rec WHERE codop = 1 AND nir IS NOT NULL AND datanir = {datequery}")
+        fdbCursor1.execute(f"SELECT idrec, nir, (SELECT web FROM furnizori WHERE idfurn = rec.idfurn), nrfact, datafact, (SELECT nume FROM furnizori WHERE idfurn = rec.idfurn) FROM rec WHERE stare = 1 AND codop = 1 AND nir IS NOT NULL AND datanir = {datequery}")
         listaCursor1 = fdbCursor1.fetchall()
 
         # Daca un furnizor nu are WEB asociat (cod Saga)
@@ -194,7 +194,7 @@ for magSelectat in range(0, len(magNume)):
         fdbCursor1 = fdbConnection.cursor()
         fdbCursor2 = fdbConnection.cursor()
 
-        fdbCursor1.execute(f"SELECT idout, serie_document_fiscal, (SELECT web FROM furnizori WHERE idfurn = out.idfurn), nr_document_intern, valretfurn, data_event, (SELECT nume FROM furnizori WHERE idfurn = out.idfurn) FROM out WHERE codop = 4 AND data_event = {datequery}")
+        fdbCursor1.execute(f"SELECT idout, observatii, (SELECT web FROM furnizori WHERE idfurn = out.idfurn), nr_document_intern, valretfurn, data_event, (SELECT nume FROM furnizori WHERE idfurn = out.idfurn) FROM out WHERE inchis = 1 AND codop = 4 AND data_event = {datequery}")
         listaCursor1 = fdbCursor1.fetchall()
 
         # Daca un furnizor nu are WEB asociat (cod Saga)
@@ -233,9 +233,9 @@ for magSelectat in range(0, len(magNume)):
             ("C", "GRUPA", 16),
         )
 
-        for (idout, serieDocumentFiscal, furnizor, nrDocumentIntern, valFact, datafact, _) in listaCursor1:
+        for (idout, observatiiNrFact, furnizor, nrDocumentIntern, valFact, datafact, _) in listaCursor1:
             # Add NIR to nrfact to look like "NR_INTRARE-NR_NIR" : "35601-6095"
-            nrfact = f"{serieDocumentFiscal}-{nrDocumentIntern}" # nu stiu cum sa pun aici ????
+            nrfact = f"{observatiiNrFact}-{nrDocumentIntern}" # nu stiu cum sa pun aici ????
 
             fdbCursor2.execute(f"SELECT idshop FROM datemagazin")
             listaCursor2 = fdbCursor2.fetchall()
